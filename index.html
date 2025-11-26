@@ -202,7 +202,7 @@ const PageTransition = ({ children }) => (
 
 // --- Header Ribbon ---
 
-const cryptoalchemy29Ribbon = () => (
+const CryptoAlchemyRibbon = () => (
   <div className="w-full bg-gradient-to-r from-violet-900 via-black to-fuchsia-900 border-b border-white/10 overflow-hidden relative h-10 md:h-12 flex items-center z-50 shadow-lg shrink-0">
     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
     <motion.div 
@@ -263,7 +263,7 @@ const HomePage = ({ setView }) => (
         </div>
 
         <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-violet-100 to-violet-400 drop-shadow-2xl mt-4">
-          42 Space
+          42 PROTOCOL
         </h1>
         <div className="text-xs md:text-sm font-mono text-slate-400 tracking-widest mt-2 bg-white/5 px-3 py-1 rounded-full">
           FORMERLY <span className="line-through decoration-rose-500 decoration-2 opacity-50">ALKIMIYA</span>
@@ -359,7 +359,7 @@ const ManifestoPage = () => (
           <Rocket size={40} className="mx-auto text-fuchsia-300 mb-4 relative z-10" />
           <h4 className="text-xl font-bold text-white mb-2">Private Beta</h4>
           <p className="text-sm text-slate-300 mb-6">
-            Help shape the Space. Early users get special "Roles" and multipliers.
+            Help shape the protocol. Early users get special "Roles" and multipliers.
           </p>
           <div className="text-xs font-mono text-slate-500 mb-2">ACCESS METHODS</div>
           <ul className="text-left space-y-2 mb-6 text-sm mx-auto inline-block">
@@ -394,7 +394,7 @@ const EvolutionPage = () => (
         <GlassCard>
           <div className="flex items-center gap-3 mb-6">
             <History className="text-violet-400" />
-            <h3 className="text-xl font-bold text-white">Space Timeline</h3>
+            <h3 className="text-xl font-bold text-white">Protocol Timeline</h3>
           </div>
           <div className="mt-4">
             <TimelineItem 
@@ -412,7 +412,7 @@ const EvolutionPage = () => (
             <TimelineItem 
               year="MAR 2025" 
               title="The Exploit" 
-              desc="SilicaPools hack ($95.5k loss). Space pauses. Pivot begins." 
+              desc="SilicaPools hack ($95.5k loss). Protocol pauses. Pivot begins." 
               tag="PIVOT POINT"
             />
             <TimelineItem 
@@ -569,7 +569,7 @@ const ComparisonPage = () => (
         <GlassCard className="border-l-4 border-l-emerald-500">
           <h4 className="font-bold text-white mb-2">Where 42 Wins</h4>
           <ul className="space-y-2 text-sm text-slate-300">
-            <li>• <strong>Unique Niche:</strong> Only Space offering direct exposure to blockchain fundamentals (Gas, Hashrate).</li>
+            <li>• <strong>Unique Niche:</strong> Only protocol offering direct exposure to blockchain fundamentals (Gas, Hashrate).</li>
             <li>• <strong>Data-Driven:</strong> Less reliant on pure opinion; grounded in on-chain metrics.</li>
             <li>• <strong>Convex Payoffs:</strong> "Winner Takes All" model offers higher upside than capped binary options.</li>
           </ul>
@@ -773,7 +773,7 @@ const AirdropPage = () => (
         <GlassCard className="bg-blue-600/10 border-blue-500/20">
           <h4 className="text-blue-400 font-bold text-sm mb-2">Alpha Note</h4>
           <p className="text-xs text-blue-200 leading-relaxed">
-            "No Token Yet". Space documentation (2024) states no token has been issued. Early points (Fourier) likely convert to future governance/rewards.
+            "No Token Yet". Protocol documentation (2024) states no token has been issued. Early points (Fourier) likely convert to future governance/rewards.
           </p>
         </GlassCard>
       </div>
@@ -836,7 +836,7 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
       </div>
 
-      <cryptoalchemy29Ribbon />
+      <CryptoAlchemyRibbon />
 
       <div className="relative z-10 flex flex-col md:flex-row flex-1 max-w-[1600px] mx-auto w-full">
         
@@ -849,7 +849,7 @@ export default function App() {
                alt="42 Logo"
              />
             <div>
-              <div className="font-bold text-white tracking-tight">42 Space</div>
+              <div className="font-bold text-white tracking-tight">42 SPACE</div>
               <div className="text-[10px] text-fuchsia-400 font-mono tracking-widest">RESEARCH</div>
             </div>
           </div>
@@ -891,7 +891,7 @@ export default function App() {
                className="w-8 h-8 rounded-full border border-white/20"
                alt="42 Logo"
              />
-             <span className="font-bold text-white tracking-tight">42 Space</span>
+             <span className="font-bold text-white tracking-tight">42 SPACE</span>
            </div>
            <button 
              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
