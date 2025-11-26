@@ -1,0 +1,952 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Terminal, 
+  Cpu, 
+  TrendingUp, 
+  ShieldAlert, 
+  Users, 
+  Zap, 
+  ArrowRight,
+  Database,
+  Gift,
+  Search,
+  AlertTriangle,
+  Menu,
+  X,
+  ChevronRight,
+  Activity,
+  Lock,
+  FileText,
+  ExternalLink,
+  Twitter,
+  Sparkles,
+  Rocket,
+  Scale,
+  History,
+  Code,
+  Newspaper,
+  Radio
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- Theme & Constants ---
+
+const COLORS = {
+  primary: "text-violet-300",
+  accent: "text-fuchsia-300",
+  highlight: "text-amber-200",
+  danger: "text-rose-400",
+  success: "text-emerald-400",
+  border: "border-violet-500/20"
+};
+
+const TEAM_DATA = [
+  {
+    name: "Leo Zhang",
+    role: "Founder",
+    bg: "Stanford Math, Morgan Stanley, Sequoia China. Quantitative Finance Expert.",
+    icon: <Terminal className="w-4 h-4" />
+  },
+  {
+    name: "Ricardo Grobel",
+    role: "Advisor (Co-Founder)",
+    bg: "Ex-Itaú Unibanco Engineer. Transitioned to Advisor (2023).",
+    icon: <Database className="w-4 h-4" />
+  }
+];
+
+const INVESTORS = [
+  { name: "Castle Island", tier: "Lead", type: "VC" },
+  { name: "1kx", tier: "Lead", type: "VC" },
+  { name: "Coinbase Ventures", tier: "Tier 1", type: "Strategic" },
+  { name: "Dragonfly", tier: "Tier 1", type: "VC" },
+  { name: "Circle", tier: "Tier 1", type: "Strategic" },
+  { name: "Robot Ventures", tier: "Tier 2", type: "Angel" }
+];
+
+const RISKS = [
+  {
+    title: "Smart Contract Hack (Resolved)",
+    severity: "CRITICAL",
+    loss: "-$95.5k",
+    date: "March 28, 2025",
+    desc: "Unsafe integer conversion (uint128 truncation) in SilicaPools. Attacker withdrew 2x deposit.",
+    color: "rose"
+  },
+  {
+    title: "Regulatory Gap",
+    severity: "HIGH",
+    loss: "Unregistered",
+    date: "Ongoing",
+    desc: "Operates as an unregistered Prediction Market. High scrutiny sector (CFTC vs Polymarket/Kalshi).",
+    color: "amber"
+  },
+  {
+    title: "Oracle Dependency",
+    severity: "MED",
+    loss: "Centralization",
+    date: "Architecture",
+    desc: "Relies on federated nodes for off-chain data (hashrate/fees). Trust-minimized but not trustless.",
+    color: "violet"
+  }
+];
+
+const COMPETITORS = [
+  {
+    aspect: "Focus",
+    p42: "Blockspace + Cultural Trends",
+    poly: "Politics, Sports, Crypto",
+    kalshi: "Regulated Events (Fed Rates)"
+  },
+  {
+    aspect: "Architecture",
+    p42: "Ethereum / Base (L2)",
+    poly: "Polygon (L2)",
+    kalshi: "Centralized (Web2)"
+  },
+  {
+    aspect: "Regulation",
+    p42: "Unregistered (DeFi)",
+    poly: "Offshore (Blocked in US)",
+    kalshi: "CFTC Licensed (Legal in US)"
+  },
+  {
+    aspect: "Est. Valuation",
+    p42: "$7.2M Raised (Seed)",
+    poly: "$1B+ (Est.)",
+    kalshi: "$700M - $1B (Est.)"
+  }
+];
+
+const NEWS_UPDATES = [
+  {
+    title: "The Pivot: From Alkimiya to 42",
+    date: "Late 2025",
+    img: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop",
+    link: "https://twitter.com/42space" 
+  },
+  {
+    title: "Private Beta Access Codes",
+    date: "Active Now",
+    img: "https://images.unsplash.com/photo-1621504450168-38f647315648?q=80&w=2940&auto=format&fit=crop",
+    link: "https://twitter.com/42space"
+  },
+  {
+    title: "Security Post-Mortem: SilicaPools",
+    date: "Mar 2025",
+    img: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=2940&auto=format&fit=crop",
+    link: "https://twitter.com/42space"
+  },
+  {
+    title: "Base L2 Gas Markets Live",
+    date: "Jan 2025",
+    img: "https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?q=80&w=2997&auto=format&fit=crop",
+    link: "https://twitter.com/42space"
+  },
+  {
+    title: "The Fourier Program Points",
+    date: "Ongoing",
+    img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2940&auto=format&fit=crop",
+    link: "https://twitter.com/42space"
+  },
+  {
+    title: "$7.2M Raise Led by Castle Island",
+    date: "Jan 2023",
+    img: "https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?q=80&w=2788&auto=format&fit=crop",
+    link: "https://twitter.com/42space"
+  }
+];
+
+// --- UI Components ---
+
+const GlassCard = ({ children, className = "", hover = false }) => (
+  <motion.div 
+    whileHover={hover ? { y: -5, boxShadow: "0 10px 40px -10px rgba(167, 139, 250, 0.2)" } : {}}
+    className={`backdrop-blur-2xl bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6 shadow-2xl relative overflow-hidden flex flex-col ${className}`}
+  >
+    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-amber-500/5 pointer-events-none" />
+    <div className="relative z-10 flex-1">
+      {children}
+    </div>
+  </motion.div>
+);
+
+const Badge = ({ text, color = "violet", className="" }) => {
+  const colorClasses = {
+    violet: "bg-violet-500/10 text-violet-300 border-violet-500/20",
+    fuchsia: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20",
+    amber: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+    rose: "bg-rose-500/10 text-rose-300 border-rose-500/20",
+    blue: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+    emerald: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+    gray: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  };
+  return (
+    <span className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-mono border whitespace-nowrap ${colorClasses[color] || colorClasses.violet} ${className}`}>
+      {text}
+    </span>
+  );
+};
+
+const PageTransition = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+    className="h-full w-full"
+  >
+    {children}
+  </motion.div>
+);
+
+// --- Header Ribbon ---
+
+const cryptoalchemy29Ribbon = () => (
+  <div className="w-full bg-gradient-to-r from-violet-900 via-black to-fuchsia-900 border-b border-white/10 overflow-hidden relative h-10 md:h-12 flex items-center z-50 shadow-lg shrink-0">
+    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+    <motion.div 
+      className="flex items-center gap-12 whitespace-nowrap absolute"
+      animate={{ x: [0, -1000] }}
+      transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+    >
+      {[...Array(10)].map((_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <img 
+            src="https://pbs.twimg.com/profile_images/1954480691242057728/Fg8Nrt_U_400x400.jpg" 
+            alt="Crypto Alchemy"
+            className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 border-fuchsia-400"
+          />
+          <span className="text-violet-200 text-xs md:text-sm font-medium tracking-wide">
+            Follow <span className="font-bold text-white">Crypto Alchemy</span>
+          </span>
+          <span className="text-fuchsia-400 font-mono text-xs md:text-sm font-bold bg-fuchsia-500/10 px-2 py-1 rounded border border-fuchsia-500/30">
+            @cryptoalchemy29
+          </span>
+          <div className="w-1.5 h-1.5 bg-amber-300 rounded-full mx-2 animate-pulse" />
+        </div>
+      ))}
+    </motion.div>
+    <a 
+      href="https://twitter.com/cryptoalchemy29" 
+      target="_blank" 
+      rel="noreferrer"
+      className="absolute right-4 top-1/2 -translate-y-1/2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-full z-10 transition-all shadow-[0_0_15px_rgba(167,139,250,0.5)] hover:scale-105"
+    >
+      Follow Now
+    </a>
+  </div>
+);
+
+// --- Pages ---
+
+const HomePage = ({ setView }) => (
+  <PageTransition>
+    <div className="flex flex-col items-center justify-center min-h-[50vh] md:min-h-[60vh] text-center space-y-6 md:space-y-10 relative overflow-hidden py-10 px-4">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-gradient-to-r from-violet-500/20 via-fuchsia-500/20 to-amber-500/20 rounded-full blur-[80px] md:blur-[100px] pointer-events-none mix-blend-screen" />
+      
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", duration: 1 }}
+        className="relative z-10 flex flex-col items-center"
+      >
+        <div className="relative">
+          <img 
+            src="https://pbs.twimg.com/profile_images/1980895171207163904/XYBZmJJ5_400x400.jpg" 
+            alt="42 Logo" 
+            className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white/10 shadow-[0_0_40px_rgba(167,139,250,0.4)] mb-6"
+          />
+          <div className="absolute -bottom-2 -right-2 rotate-12 bg-gradient-to-r from-amber-200 to-amber-400 text-black font-black px-3 py-1 md:px-4 md:py-1 rounded-full text-[10px] md:text-xs shadow-lg shadow-amber-500/30 whitespace-nowrap">
+            PRIVATE BETA
+          </div>
+        </div>
+
+        <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-violet-100 to-violet-400 drop-shadow-2xl mt-4">
+          42 Space
+        </h1>
+        <div className="text-xs md:text-sm font-mono text-slate-400 tracking-widest mt-2 bg-white/5 px-3 py-1 rounded-full">
+          FORMERLY <span className="line-through decoration-rose-500 decoration-2 opacity-50">ALKIMIYA</span>
+        </div>
+      </motion.div>
+
+      <div className="space-y-4 max-w-2xl relative z-10">
+        <h2 className="text-base md:text-xl font-medium text-fuchsia-300 tracking-widest uppercase font-mono">
+          Conviction Meets Momentum
+        </h2>
+        <p className="text-slate-300 text-sm md:text-lg leading-relaxed font-light px-2">
+          A new kind of prediction market where <span className="text-white font-semibold">Truth Seekers</span> and <span className="text-white font-semibold">Trend Surfers</span> collide. Liquid markets for Culture and Blockspace.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-lg relative z-10">
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setView('opps')}
+          className="w-full sm:flex-1 px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-violet-50 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2"
+        >
+          <Code size={20} /> Code Hunt
+        </motion.button>
+        
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setView('tech')}
+          className="w-full sm:flex-1 px-8 py-4 bg-white/5 text-white font-bold rounded-xl border border-white/10 hover:bg-white/10 hover:border-violet-400/50 transition-all flex items-center justify-center gap-2 backdrop-blur-md"
+        >
+          <Cpu size={20} /> How It Works
+        </motion.button>
+      </div>
+    </div>
+  </PageTransition>
+);
+
+const ManifestoPage = () => (
+  <PageTransition>
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 md:gap-8 pb-8">
+      <div className="xl:col-span-8 space-y-6">
+        <GlassCard className="border-t-4 border-t-fuchsia-400">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 border-b border-white/10 pb-6">
+            <div className="p-4 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-2xl text-fuchsia-300 shadow-inner border border-white/5">
+              <Sparkles size={28} />
+            </div>
+            <div>
+              <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">Two Games, One Market</h3>
+              <p className="text-violet-300 text-sm font-mono mt-1">Solving the "Thin-Crowd" Problem</p>
+            </div>
+          </div>
+          
+          <div className="prose prose-invert max-w-none space-y-6 text-slate-300 font-light leading-relaxed">
+            <p className="text-base md:text-lg text-white font-medium">
+              Traditional prediction markets are boring. They suffer from low liquidity because only "nerds" trade the outcome.
+            </p>
+            <p className="text-sm md:text-base">
+              42 changes the meta by co-locating two distinct types of traders in the same liquidity pool:
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+              <div className="p-4 md:p-6 rounded-xl bg-violet-500/5 border border-violet-500/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10"><Lock size={64} /></div>
+                <div className="text-violet-400 font-bold font-mono text-xs md:text-sm mb-2 uppercase">Type A: Conviction</div>
+                <div className="text-white font-bold text-base md:text-lg mb-2">The Believer</div>
+                <div className="text-xs md:text-sm text-slate-400">
+                  Trades on <strong>belief</strong>. Commits early, holds through noise. Provides the "Directional Anchor".
+                </div>
+              </div>
+              <div className="p-4 md:p-6 rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10"><Activity size={64} /></div>
+                <div className="text-fuchsia-400 font-bold font-mono text-xs md:text-sm mb-2 uppercase">Type B: Momentum</div>
+                <div className="text-white font-bold text-base md:text-lg mb-2">The Surfer</div>
+                <div className="text-xs md:text-sm text-slate-400">
+                  Trades on <strong>attention</strong>. Enters when hype builds, exits when it fades. Provides "Turnover".
+                </div>
+              </div>
+            </div>
+
+            <h4 className="text-white font-bold text-lg mt-6">Winner Takes All (Convexity)</h4>
+            <p className="text-sm md:text-base">
+              Unlike standard $1 binary options where profit is capped, 42 uses a "Winner Takes All" format. 
+              The winning outcome absorbs the <strong>entire collateral pool</strong> of losing outcomes. 
+            </p>
+          </div>
+        </GlassCard>
+      </div>
+
+      <div className="xl:col-span-4 space-y-6">
+        <GlassCard className="bg-gradient-to-b from-fuchsia-900/20 to-slate-900/40 border-fuchsia-500/20 text-center h-full flex flex-col justify-center min-h-[300px]">
+          <div className="w-16 h-16 mx-auto bg-fuchsia-500 rounded-full blur-[20px] absolute top-10 left-1/2 -translate-x-1/2 opacity-40 pointer-events-none" />
+          <Rocket size={40} className="mx-auto text-fuchsia-300 mb-4 relative z-10" />
+          <h4 className="text-xl font-bold text-white mb-2">Private Beta</h4>
+          <p className="text-sm text-slate-300 mb-6">
+            Help shape the Space. Early users get special "Roles" and multipliers.
+          </p>
+          <div className="text-xs font-mono text-slate-500 mb-2">ACCESS METHODS</div>
+          <ul className="text-left space-y-2 mb-6 text-sm mx-auto inline-block">
+            <li className="flex items-center gap-2 text-slate-300"><Code size={14} className="text-emerald-400"/> Find Codes on X/Discord</li>
+            <li className="flex items-center gap-2 text-slate-300"><Gift size={14} className="text-purple-400"/> Waitlist Airdrop</li>
+          </ul>
+          <button className="w-full py-3 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-fuchsia-500/25">
+            Join Discord
+          </button>
+        </GlassCard>
+      </div>
+    </div>
+  </PageTransition>
+);
+
+const TimelineItem = ({ year, title, desc, active = false, tag = null }) => (
+  <div className={`relative pl-8 pb-8 border-l ${active ? 'border-fuchsia-500' : 'border-white/10'} last:border-0`}>
+    <div className={`absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full ${active ? 'bg-fuchsia-500 box-shadow-[0_0_10px_#d946ef]' : 'bg-slate-700'}`} />
+    <div className="flex items-center gap-2 mb-1">
+      <span className={`text-xs font-mono ${active ? 'text-fuchsia-400' : 'text-slate-500'}`}>{year}</span>
+      {tag && <span className="text-[10px] bg-slate-800 text-slate-400 px-1 rounded">{tag}</span>}
+    </div>
+    <h4 className="text-white font-bold text-base mb-1">{title}</h4>
+    <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+  </div>
+);
+
+const EvolutionPage = () => (
+  <PageTransition>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
+      <div className="space-y-6">
+        <GlassCard>
+          <div className="flex items-center gap-3 mb-6">
+            <History className="text-violet-400" />
+            <h3 className="text-xl font-bold text-white">Space Timeline</h3>
+          </div>
+          <div className="mt-4">
+            <TimelineItem 
+              year="2021-2023" 
+              title="Alkimiya Era" 
+              desc="Leo Zhang founds Alkimiya. Raises $7.2M from Castle Island, 1kx, Coinbase. Product: Blockspace Hedging." 
+              tag="OLD"
+            />
+            <TimelineItem 
+              year="2024" 
+              title="Mainnet Launch" 
+              desc="Bitcoin markets on Ethereum. Base L2 markets launched." 
+              tag="OLD"
+            />
+            <TimelineItem 
+              year="MAR 2025" 
+              title="The Exploit" 
+              desc="SilicaPools hack ($95.5k loss). Space pauses. Pivot begins." 
+              tag="PIVOT POINT"
+            />
+            <TimelineItem 
+              year="LATE 2025" 
+              title="Birth of 42" 
+              desc="Pivot to Prediction Markets. Combining 'Blockspace' tech with 'Cultural' markets." 
+              active 
+              tag="CURRENT"
+            />
+          </div>
+        </GlassCard>
+      </div>
+
+      <div className="space-y-6">
+        <GlassCard className="border-l-4 border-l-gray-500">
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-bold text-slate-300 mb-2">Legacy Product: Alkimiya</h3>
+            <Badge text="DISCONTINUED FOCUS" color="gray" />
+          </div>
+          <p className="text-slate-400 text-sm mb-4">
+            "Blockspace Hedging" - Like airline fuel hedging but for Bitcoin miners. 
+            <strong> Status:</strong> Tech stack remains, but consumer focus has shifted.
+          </p>
+        </GlassCard>
+
+        <GlassCard className="border-l-4 border-l-fuchsia-500">
+          <div className="flex justify-between items-start">
+             <h3 className="text-lg font-bold text-white mb-2">Current Product: 42</h3>
+             <Badge text="ACTIVE BETA" color="fuchsia" />
+          </div>
+          <p className="text-slate-300 text-sm mb-4">
+            Generalized Prediction Markets. Trading "Everything".
+          </p>
+          <ul className="space-y-2 text-sm text-slate-400">
+            <li className="flex items-center gap-2">✅ <span className="text-white">Hard Data:</span> Bitcoin Fees, L2 Gas (Inherited from Alkimiya)</li>
+            <li className="flex items-center gap-2">✅ <span className="text-white">Soft Data:</span> Memecoin Trends, Virality, Politics (New)</li>
+          </ul>
+        </GlassCard>
+      </div>
+    </div>
+  </PageTransition>
+);
+
+const MechanicsPage = () => (
+  <PageTransition>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
+      <div className="space-y-6">
+        <GlassCard>
+          <div className="flex items-center gap-3 mb-6">
+            <Zap className="text-amber-400" />
+            <h3 className="text-xl font-bold text-white">Under The Hood</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-white/5 rounded-xl border border-white/5 opacity-75 hover:opacity-100 transition-opacity">
+              <div className="flex justify-between mb-1">
+                <h4 className="font-bold text-slate-400">1. Silica Contracts</h4>
+                <Badge text="LEGACY CORE" color="gray" />
+              </div>
+              <p className="text-sm text-slate-500">
+                The original "Alkimiya" tech. A swap converting volatile streams (mining rewards) into fixed cash. Used now for "Hard Data" markets.
+              </p>
+            </div>
+
+            <div className="p-4 bg-violet-500/10 rounded-xl border border-violet-500/30">
+              <div className="flex justify-between mb-1">
+                 <h4 className="font-bold text-fuchsia-300">2. Dynamic Parimutuel (DPM)</h4>
+                 <Badge text="NEW CORE (42)" color="fuchsia" />
+              </div>
+              <p className="text-sm text-slate-300">
+                The pricing engine for 42. Price adjusts dynamically based on pooled funds. Enables continuous trading unlike old parimutuels.
+              </p>
+            </div>
+
+            <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+              <h4 className="font-bold text-emerald-300 mb-1">3. Hash Vault</h4>
+              <p className="text-sm text-slate-400">
+                Financial structuring layer. Packages raw swaps into Bonds or Perps.
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+
+      <div className="space-y-6">
+        <GlassCard className="bg-gradient-to-br from-slate-900 to-black border-slate-700">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-white">Payoff Simulator</h3>
+            <Badge text="Winner Takes All" color="rose" />
+          </div>
+          
+          <div className="space-y-4">
+            <p className="text-xs text-slate-400">
+              In 42, you don't just win $1. You win a share of the <strong>entire losing pool</strong>.
+            </p>
+            
+            <div className="p-4 bg-slate-800/50 rounded-lg">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-400">Your Bet (Correct):</span>
+                <span className="text-emerald-400">$100</span>
+              </div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-400">Opposing Pool (Wrong):</span>
+                <span className="text-rose-400">$10,000</span>
+              </div>
+              <div className="h-px w-full bg-slate-600 my-2" />
+              <div className="flex justify-between font-bold">
+                <span className="text-white">Your Payoff:</span>
+                <span className="text-amber-400 text-xl">🚀 &gt; $100</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-2">
+                *Payoff scales with the size of the counter-party pool. High conviction against the herd yields massive returns.
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+    </div>
+  </PageTransition>
+);
+
+const ComparisonPage = () => (
+  <PageTransition>
+    <div className="space-y-8 pb-8">
+      <div className="text-center max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold text-white mb-2">Competitor Benchmarking</h2>
+        <p className="text-slate-400">How 42 stacks up against the titans of prediction.</p>
+      </div>
+
+      <div className="overflow-x-auto custom-scrollbar pb-4">
+        <table className="w-full border-collapse min-w-[600px]">
+          <thead>
+            <tr>
+              <th className="p-4 text-left text-slate-500 font-mono text-xs uppercase tracking-wider">Feature</th>
+              <th className="p-4 text-left bg-violet-500/10 border-t-2 border-violet-500 rounded-tl-xl text-violet-300 font-bold text-lg">42 (Alkimiya)</th>
+              <th className="p-4 text-left bg-slate-800/30 border-t-2 border-slate-700 text-slate-300 font-bold">Polymarket</th>
+              <th className="p-4 text-left bg-slate-800/30 border-t-2 border-slate-700 rounded-tr-xl text-slate-300 font-bold">Kalshi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {COMPETITORS.map((row, i) => (
+              <tr key={i} className="hover:bg-white/5 transition-colors">
+                <td className="p-4 text-slate-400 font-medium text-sm">{row.aspect}</td>
+                <td className="p-4 text-white font-bold bg-violet-500/5 shadow-[inset_0_0_20px_rgba(139,92,246,0.1)]">{row.p42}</td>
+                <td className="p-4 text-slate-300 text-sm">{row.poly}</td>
+                <td className="p-4 text-slate-300 text-sm">{row.kalshi}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <GlassCard className="border-l-4 border-l-emerald-500">
+          <h4 className="font-bold text-white mb-2">Where 42 Wins</h4>
+          <ul className="space-y-2 text-sm text-slate-300">
+            <li>• <strong>Unique Niche:</strong> Only Space offering direct exposure to blockchain fundamentals (Gas, Hashrate).</li>
+            <li>• <strong>Data-Driven:</strong> Less reliant on pure opinion; grounded in on-chain metrics.</li>
+            <li>• <strong>Convex Payoffs:</strong> "Winner Takes All" model offers higher upside than capped binary options.</li>
+          </ul>
+        </GlassCard>
+        <GlassCard className="border-l-4 border-l-rose-500">
+          <h4 className="font-bold text-white mb-2">Challenges</h4>
+          <ul className="space-y-2 text-sm text-slate-300">
+            <li>• <strong>Volume:</strong> Currently tiny compared to Polymarket's billions.</li>
+            <li>• <strong>Complexity:</strong> Understanding "Silica" and "Gas Hedging" is harder than "Who will win the election?".</li>
+            <li>• <strong>Regulatory:</strong> Unregistered status poses long-term risk similar to Polymarket.</li>
+          </ul>
+        </GlassCard>
+      </div>
+    </div>
+  </PageTransition>
+);
+
+const RiskTeamPage = () => (
+  <PageTransition>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
+      {/* Team Section */}
+      <div className="space-y-6">
+        <GlassCard>
+          <div className="flex items-center gap-3 mb-6">
+            <Users className="text-violet-400" />
+            <h3 className="text-xl font-bold text-white">Team & Backers</h3>
+          </div>
+          
+          <div className="space-y-4">
+            {TEAM_DATA.map((m, i) => (
+              <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-slate-800/30 border border-white/5">
+                <div className="p-3 bg-slate-900 rounded-lg text-violet-400 mt-1">{m.icon}</div>
+                <div>
+                  <div className="font-bold text-white">{m.name}</div>
+                  <div className="text-xs font-bold text-fuchsia-400 mb-1">{m.role}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{m.bg}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <h4 className="text-xs font-mono text-slate-500 mb-3 uppercase tracking-widest">Investors ($7.2M Raised)</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {INVESTORS.map((inv, i) => (
+                <div key={i} className="text-xs px-3 py-2 bg-white/5 text-slate-300 rounded border border-white/5 flex justify-between">
+                  <span>{inv.name}</span>
+                  <span className={`opacity-50 ${inv.tier === 'Lead' ? 'text-amber-400 font-bold opacity-100' : ''}`}>{inv.tier}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+
+      {/* Risk Radar */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <AlertTriangle size={18} className="text-rose-400" /> 
+            Risk Radar
+          </h3>
+          <span className="text-xs font-mono text-rose-400 animate-pulse">LIVE ALERTS</span>
+        </div>
+        
+        {RISKS.map((risk, i) => (
+          <GlassCard key={i} className={`border-l-2 ${risk.color === 'rose' ? 'border-l-rose-400' : risk.color === 'amber' ? 'border-l-amber-400' : 'border-l-violet-400'}`}>
+            <div className="flex justify-between items-start mb-1">
+              <h4 className="font-bold text-slate-200 text-sm">{risk.title}</h4>
+              <Badge text={risk.severity} color={risk.color} />
+            </div>
+            <div className="text-[10px] font-mono text-slate-500 mb-2">{risk.date}</div>
+            <p className="text-xs text-slate-400 mb-2 leading-relaxed">{risk.desc}</p>
+            {risk.loss !== "N/A" && (
+              <div className="text-xs font-mono text-rose-300 bg-rose-950/30 px-2 py-1 rounded inline-block border border-rose-500/20">
+                Impact: {risk.loss}
+              </div>
+            )}
+          </GlassCard>
+        ))}
+      </div>
+    </div>
+  </PageTransition>
+);
+
+const NewsPage = () => (
+  <PageTransition>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8">
+      {NEWS_UPDATES.map((item, i) => (
+        <GlassCard key={i} hover className="p-0 overflow-hidden group border-0 bg-slate-900">
+           {/* Image Container 16:9 */}
+           <div className="relative w-full aspect-video overflow-hidden">
+             <div className="absolute inset-0 bg-violet-900/20 mix-blend-overlay z-10" />
+             <img 
+               src={item.img} 
+               alt={item.title}
+               className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+             />
+             <div className="absolute top-2 right-2 z-20">
+                <Badge text={item.date} color="violet" className="bg-black/50 backdrop-blur-md border-white/10 text-white" />
+             </div>
+           </div>
+           
+           {/* Content */}
+           <div className="p-5 flex flex-col flex-1 bg-slate-900/80 backdrop-blur-xl border-t border-white/5">
+             <h3 className="text-lg font-bold text-white mb-4 line-clamp-2 group-hover:text-fuchsia-300 transition-colors">
+               {item.title}
+             </h3>
+             
+             <a 
+               href={item.link} 
+               target="_blank" 
+               rel="noreferrer"
+               className="mt-auto flex items-center justify-between w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 hover:text-white transition-all group/btn border border-white/5"
+             >
+               <span>Read on X</span>
+               <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition-transform" />
+             </a>
+           </div>
+        </GlassCard>
+      ))}
+    </div>
+  </PageTransition>
+);
+
+const AirdropPage = () => (
+  <PageTransition>
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full pb-8">
+      <div className="xl:col-span-2">
+        <GlassCard className="h-full bg-gradient-to-br from-slate-900/60 to-violet-900/20 border-violet-500/20">
+          <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4">
+            <div>
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Gift className="text-fuchsia-400" /> Fourier Program
+              </h3>
+              <p className="text-violet-300 text-sm font-mono mt-1">Private Beta Access & Points</p>
+            </div>
+            <div className="px-3 py-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(167,139,250,0.4)] whitespace-nowrap">
+              CODE HUNT LIVE
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden group">
+              <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Code size={40}/></div>
+              <h4 className="font-bold text-white text-lg mb-1">1. The Code Hunt</h4>
+              <p className="text-sm text-slate-400 mb-2">
+                Beta codes are hidden in social campaigns and Discord events. 
+                <span className="text-amber-300"> 4 more opportunities dropping soon.</span>
+              </p>
+              <button className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded border border-white/10 transition-colors">
+                Check X (@42space)
+              </button>
+            </div>
+
+            <div className="p-4 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden">
+              <h4 className="font-bold text-white text-lg mb-1">2. Waitlist Airdrop</h4>
+              <p className="text-sm text-slate-400">
+                Select users at <strong>42.space</strong> will be randomly airdropped invite codes via DM.
+              </p>
+            </div>
+
+            <div className="p-4 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden">
+               <h4 className="font-bold text-white text-lg mb-1">3. Content Amplifier</h4>
+               <p className="text-sm text-slate-400">
+                 Active community members who create content increase chances of early access.
+               </p>
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <GlassCard className="flex-1">
+          <h4 className="text-sm font-bold text-white mb-4">Tier System</h4>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-2 rounded bg-amber-500/10 border border-amber-500/20">
+              <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center font-bold text-black text-xs">G</div>
+              <div>
+                <div className="text-xs font-bold text-amber-200">GOLD</div>
+                <div className="text-[10px] text-amber-200/60">Top Contributors</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-2 rounded bg-slate-400/10 border border-slate-400/20">
+              <div className="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center font-bold text-black text-xs">S</div>
+              <div>
+                <div className="text-xs font-bold text-slate-200">SILVER</div>
+                <div className="text-[10px] text-slate-400">Active Traders</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-2 rounded bg-orange-700/10 border border-orange-700/20">
+              <div className="w-8 h-8 rounded-full bg-orange-700 flex items-center justify-center font-bold text-white text-xs">B</div>
+              <div>
+                <div className="text-xs font-bold text-orange-300">BRONZE</div>
+                <div className="text-[10px] text-orange-400/60">Verified Users</div>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="bg-blue-600/10 border-blue-500/20">
+          <h4 className="text-blue-400 font-bold text-sm mb-2">Alpha Note</h4>
+          <p className="text-xs text-blue-200 leading-relaxed">
+            "No Token Yet". Space documentation (2024) states no token has been issued. Early points (Fourier) likely convert to future governance/rewards.
+          </p>
+        </GlassCard>
+      </div>
+    </div>
+  </PageTransition>
+);
+
+// --- Navigation ---
+
+const NavItem = ({ id, label, icon: Icon, active, onClick, isAction = false }) => (
+  <button
+    onClick={() => onClick(id)}
+    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
+      isAction
+      ? 'mt-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold shadow-lg shadow-violet-500/20 hover:scale-105'
+      : active 
+        ? 'bg-white/10 text-white shadow-[0_0_20px_rgba(167,139,250,0.1)] border border-white/10' 
+        : 'text-slate-400 hover:bg-white/5 hover:text-white'
+    }`}
+  >
+    <Icon size={isAction ? 18 : 20} className={active ? "text-fuchsia-300" : isAction ? "text-white" : "group-hover:text-violet-300 transition-colors"} />
+    <span className={`font-medium ${active ? "font-bold" : ""}`}>{label}</span>
+    {active && <motion.div layoutId="active-pill" className="ml-auto w-1.5 h-1.5 bg-fuchsia-400 rounded-full box-shadow-[0_0_10px_currentColor]" />}
+  </button>
+);
+
+// --- Main App ---
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const TABS = [
+    { id: 'home', label: 'Briefing', icon: Search },
+    { id: 'news', label: 'News & Updates', icon: Newspaper },
+    { id: 'manifesto', label: 'Manifesto', icon: FileText },
+    { id: 'compare', label: 'vs Competitors', icon: Scale },
+    { id: 'evolution', label: 'Timeline', icon: History },
+    { id: 'tech', label: 'Mechanics', icon: Cpu },
+    { id: 'risks', label: 'Risk & Team', icon: ShieldAlert },
+    { id: 'opps', label: 'Airdrop Ops', icon: Gift },
+  ];
+
+  const handleNavClick = (id) => {
+    setActiveTab(id);
+    setIsMobileMenuOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-slate-200 font-sans selection:bg-fuchsia-500/30 selection:text-fuchsia-200 overflow-x-hidden flex flex-col">
+      
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-slate-950" />
+        {/* Soft gradient imitating the uploaded image */}
+        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-violet-900/30 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[80%] h-[80%] bg-fuchsia-900/20 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[100px]" />
+        
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
+      </div>
+
+      <cryptoalchemy29Ribbon />
+
+      <div className="relative z-10 flex flex-col md:flex-row flex-1 max-w-[1600px] mx-auto w-full">
+        
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex flex-col w-64 p-6 sticky top-12 h-[calc(100vh-48px)] border-r border-white/5 bg-black/20 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-10 cursor-pointer" onClick={() => setActiveTab('home')}>
+             <img 
+               src="https://pbs.twimg.com/profile_images/1980895171207163904/XYBZmJJ5_400x400.jpg" 
+               className="w-10 h-10 rounded-full border border-white/20"
+               alt="42 Logo"
+             />
+            <div>
+              <div className="font-bold text-white tracking-tight">42 Space</div>
+              <div className="text-[10px] text-fuchsia-400 font-mono tracking-widest">RESEARCH</div>
+            </div>
+          </div>
+
+          <nav className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+            {TABS.map(tab => (
+              <NavItem 
+                key={tab.id}
+                {...tab}
+                active={activeTab === tab.id}
+                onClick={handleNavClick}
+              />
+            ))}
+            <NavItem 
+              id="join"
+              label="Join Discord"
+              icon={Rocket}
+              active={false}
+              onClick={() => window.open('https://discord.gg/8RVzTy3x', '_blank')}
+              isAction={true}
+            />
+          </nav>
+
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse box-shadow-[0_0_10px_#10b981]" />
+              <div className="text-xs text-slate-400">
+                Status: <span className="text-emerald-400 font-bold">BETA LIVE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-40">
+           <div className="flex items-center gap-2" onClick={() => setActiveTab('home')}>
+             <img 
+               src="https://pbs.twimg.com/profile_images/1980895171207163904/XYBZmJJ5_400x400.jpg" 
+               className="w-8 h-8 rounded-full border border-white/20"
+               alt="42 Logo"
+             />
+             <span className="font-bold text-white tracking-tight">42 Space</span>
+           </div>
+           <button 
+             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+             className="p-2 text-slate-200 hover:text-white bg-white/5 rounded-lg border border-white/5"
+           >
+             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+           </button>
+        </div>
+
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-48px)]">
+          <AnimatePresence mode="wait">
+            {activeTab === 'home' && <HomePage key="home" setView={setActiveTab} />}
+            {activeTab === 'news' && <NewsPage key="news" />}
+            {activeTab === 'manifesto' && <ManifestoPage key="manifesto" />}
+            {activeTab === 'compare' && <ComparisonPage key="compare" />}
+            {activeTab === 'evolution' && <EvolutionPage key="evolution" />}
+            {activeTab === 'tech' && <MechanicsPage key="tech" />}
+            {activeTab === 'risks' && <RiskTeamPage key="risks" />}
+            {activeTab === 'opps' && <AirdropPage key="opps" />}
+          </AnimatePresence>
+        </main>
+
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed inset-0 z-30 bg-black/95 backdrop-blur-xl md:hidden pt-20 px-4"
+            >
+              <div className="flex flex-col gap-2">
+                {TABS.map(tab => (
+                  <NavItem 
+                    key={tab.id}
+                    {...tab}
+                    active={activeTab === tab.id}
+                    onClick={handleNavClick}
+                  />
+                ))}
+                <NavItem 
+                  id="join-mobile"
+                  label="Join Discord"
+                  icon={Rocket}
+                  active={false}
+                  onClick={() => window.open('https://discord.gg/8RVzTy3x', '_blank')}
+                  isAction={true}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
+    </div>
+  );
+};
